@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICT Club Week 2026 — MWECAU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #050a14;
+    --surface: #0b1629;
+    --surface2: #0f1e38;
+    --blue: #1d6fff;
+    --blue-bright: #4d8fff;
+    --blue-glow: rgba(29,111,255,0.18);
+    --cyan: #00d4ff;
+    --white: #f0f4ff;
+    --muted: #6b7fa8;
+    --grid-line: rgba(29,111,255,0.07);
+    --font-display: 'Instrument Serif', serif;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--white);
+    font-family: var(--font-head);
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ambient glow blobs */
+  .glow-1, .glow-2 {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.35;
+  }
+  .glow-1 { width: 600px; height: 600px; background: #1a3a8f; top: -150px; left: -100px; }
+  .glow-2 { width: 500px; height: 500px; background: #003d6e; bottom: -100px; right: 0; }
+
+  #app {
+    position: relative; z-index: 1;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  /* Top bar */
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px;
+    border-bottom: 1px solid rgba(29,111,255,0.15);
+    background: rgba(5,10,20,0.7);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
+  }
+  .tb-brand {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .tb-logo {
+    width: 38px; height: 38px;
+    background: var(--blue);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 13px; font-weight: 700;
+    color: white; letter-spacing: -0.5px;
+  }
+  .tb-name { font-size: 15px; font-weight: 700; letter-spacing: 0.04em; color: var(--white); }
+  .tb-sub { font-size: 11px; font-family: var(--font-mono); color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 1px; }
+  .tb-center {
+    font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--cyan);
+    animation: pulse-anim 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse-anim {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+  }
+  #clock {
+    font-family: var(--font-mono); font-size: 20px; font-weight: 700;
+    color: var(--white); letter-spacing: 0.06em;
+  }
+
+  /* Stage */
+  #stage {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ── HERO SLIDE ── */
+  .slide-hero {
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 60px;
+    gap: 24px;
+  }
+  .slide-hero .eyebrow {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--cyan);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 6px 18px; border-radius: 30px;
+    display: inline-block;
+  }
+  .slide-hero h1 {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(64px, 8vw, 120px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--white);
+  }
+  .slide-hero h1 em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--blue-bright), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .slide-hero .tagline {
+    font-family: var(--font-mono); font-size: 14px;
+    color: var(--muted); letter-spacing: 0.08em;
+    max-width: 600px;
+  }
+  .slide-hero .dates-badge {
+    display: flex; gap: 20px;
+    margin-top: 10px;
+  }
+  .date-pill {
+    background: var(--surface2);
+    border: 1px solid rgba(29,111,255,0.3);
+    border-radius: 12px; padding: 10px 28px;
+    font-family: var(--font-mono); font-size: 13px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .date-pill span:first-child { color: var(--muted); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
+  .date-pill span:last-child { color: var(--white); font-weight: 700; }
+
+  /* ── ACTIVITY SLIDE ── */
+  .slide-activity {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .act-content {
+    flex: 1.1; padding: 60px 48px 60px 64px;
+    display: flex; flex-direction: column; justify-content: center; gap: 24px;
+  }
+  .act-tag {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--blue-bright);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .act-tag::before { content: ''; display: inline-block; width: 32px; height: 2px; background: var(--blue-bright); }
+  .act-content h2 {
+    font-family: var(--font-display); font-style: italic;
+    font-size: clamp(42px, 5vw, 72px);
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+  }
+  .act-desc {
+    font-size: 16px; line-height: 1.7; color: rgba(240,244,255,0.7);
+    max-width: 480px;
+    font-family: var(--font-head);
+  }
+  .act-items {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 8px;
+  }
+  .act-item {
+    background: var(--surface2);
+    border: 1px solid rgba(29,111,255,0.25);
+    border-radius: 8px; padding: 8px 16px;
+    font-size: 13px; font-family: var(--font-mono);
+    color: rgba(240,244,255,0.85);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .act-item::before { content: '✓'; color: var(--cyan); font-size: 11px; }
+
+  .act-visual {
+    flex: 0.9;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .act-visual::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(270deg, transparent 50%, var(--bg) 100%);
+    z-index: 2;
+  }
+  .act-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.55;
+  }
+  .act-img-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2);
+    font-family: var(--font-mono); font-size: 80px;
+    opacity: 0.4;
+  }
+
+  /* ── STAT SLIDE ── */
+  .slide-stat {
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 20px;
+    padding: 60px;
+  }
+  .stat-label {
+    font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .stat-number {
+    font-family: var(--font-display); font-style: italic;
+    font-size: clamp(80px, 14vw, 180px);
+    line-height: 0.9;
+    color: var(--white);
+  }
+  .stat-number em {
+    color: var(--cyan); font-style: italic;
+  }
+  .stat-sub {
+    font-size: 18px; color: rgba(240,244,255,0.55); max-width: 540px;
+    font-family: var(--font-head);
+  }
+  .stat-grid {
+    display: flex; gap: 32px; margin-top: 16px;
+  }
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid rgba(29,111,255,0.2);
+    border-radius: 14px; padding: 20px 36px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .stat-card .n { font-family: var(--font-display); font-style: italic; font-size: 40px; color: var(--blue-bright); }
+  .stat-card .l { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+  /* ── QUOTE SLIDE ── */
+  .slide-quote {
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 28px;
+    padding: 80px 120px;
+  }
+  .quote-mark {
+    font-family: var(--font-display); font-size: 120px; line-height: 0.7;
+    color: var(--blue); opacity: 0.4;
+    font-style: italic;
+  }
+  .quote-text {
+    font-family: var(--font-display); font-style: italic;
+    font-size: clamp(28px, 4vw, 52px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--white);
+    max-width: 900px;
+  }
+  .quote-author {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--cyan);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .quote-author::before, .quote-author::after {
+    content: ''; display: inline-block; width: 40px; height: 1px; background: rgba(0,212,255,0.4);
+  }
+
+  /* ── SCHEDULE SLIDE ── */
+  .slide-schedule {
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 50px 80px; gap: 32px;
+  }
+  .sched-head {
+    text-align: center;
+  }
+  .sched-head .eyebrow {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--cyan); margin-bottom: 10px;
+  }
+  .sched-head h2 {
+    font-family: var(--font-display); font-style: italic;
+    font-size: clamp(42px, 5.5vw, 80px);
+    line-height: 0.95; letter-spacing: -0.02em;
+  }
+  .sched-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    width: 100%; max-width: 900px;
+  }
+  .sched-item {
+    background: var(--surface2);
+    border: 1px solid rgba(29,111,255,0.2);
+    border-radius: 14px; padding: 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .sched-item .day {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--blue-bright);
+  }
+  .sched-item .activity-name {
+    font-family: var(--font-head); font-size: 16px; font-weight: 700;
+    color: var(--white);
+  }
+  .sched-item .time-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── ANNOUNCE SLIDE ── */
+  .slide-announce {
+    flex-direction: row;
+    align-items: center;
+    padding: 60px 80px;
+    gap: 60px;
+  }
+  .ann-left {
+    flex: 1;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .ann-eyebrow {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--cyan);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ann-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--cyan); display: inline-block; }
+  .ann-left h2 {
+    font-family: var(--font-display); font-style: italic;
+    font-size: clamp(40px, 5vw, 70px);
+    line-height: 1.0; letter-spacing: -0.02em;
+  }
+  .ann-left p {
+    font-size: 17px; color: rgba(240,244,255,0.65); line-height: 1.7;
+    max-width: 440px;
+  }
+  .ann-highlights {
+    display: flex; flex-direction: column; gap: 12px; margin-top: 8px;
+  }
+  .ann-highlight {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 15px; color: rgba(240,244,255,0.8);
+    font-family: var(--font-head);
+  }
+  .ann-highlight .icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(29,111,255,0.15);
+    border: 1px solid rgba(29,111,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .ann-right {
+    flex: 0.8;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .ann-card {
+    background: var(--surface2);
+    border: 1px solid rgba(29,111,255,0.2);
+    border-radius: 14px; padding: 18px 24px;
+    font-family: var(--font-mono); font-size: 13px;
+    color: rgba(240,244,255,0.7);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .ann-card .num {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 28px; color: var(--blue-bright); flex-shrink: 0;
+    line-height: 1;
+  }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar-container {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 3px; background: rgba(29,111,255,0.1); z-index: 10;
+  }
+  #progress-bar {
+    height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan));
+    width: 0%; transition: none;
+    box-shadow: 0 0 10px var(--blue);
+  }
+
+  /* ── SLIDE COUNTER ── */
+  #slide-counter {
+    position: fixed; bottom: 18px; right: 36px;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--muted); letter-spacing: 0.1em;
+    z-index: 10;
+  }
+
+  /* ── SLIDE DOTS ── */
+  #slide-dots {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; z-index: 10;
+  }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(107,127,168,0.4);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .dot.active {
+    background: var(--blue-bright);
+    width: 20px; border-radius: 3px;
+  }
+
+  /* ── ENTER ANIMATIONS ── */
+  .slide.active .anim-up {
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .slide.active .anim-up:nth-child(1) { animation-delay: 0.05s; }
+  .slide.active .anim-up:nth-child(2) { animation-delay: 0.15s; }
+  .slide.active .anim-up:nth-child(3) { animation-delay: 0.25s; }
+  .slide.active .anim-up:nth-child(4) { animation-delay: 0.35s; }
+  .slide.active .anim-up:nth-child(5) { animation-delay: 0.45s; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .anim-up { opacity: 0; }
+  .slide.active .anim-up { opacity: 0; }
+
+  .slide.active .anim-left {
+    animation: slideLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .anim-left { opacity: 0; }
+  @keyframes slideLeft {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .slide.active .anim-right {
+    animation: slideRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  }
+  .anim-right { opacity: 0; }
+  @keyframes slideRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Scan line overlay for TV effect */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none; z-index: 100;
+  }
+</style>
+</head>
+<body>
+<div class="glow-1"></div>
+<div class="glow-2"></div>
+
+<div id="app">
+  <div id="topbar">
+    <div class="tb-brand">
+      <div class="tb-logo">ICT</div>
+      <div>
+        <div class="tb-name">MWECAU ICT Club</div>
+        <div class="tb-sub">Moshi · Tanzania</div>
+      </div>
+    </div>
+    <div class="tb-center">
+      <div class="pulse-dot"></div>
+      LIVE — ICT Week 2026
+    </div>
+    <div id="clock">--:--:--</div>
+  </div>
+
+  <div id="stage"></div>
+</div>
+
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+<div id="slide-dots"></div>
+<div id="slide-counter">01 / 01</div>
+
+<script>
+/* ═══════════════════════════════════════
+   JSON DATA — edit freely
+═══════════════════════════════════════ */
+const SLIDES = [
+  {
+    type: "hero",
+    duration: 9000,
+    eyebrow: "June 1 – 6, 2026 · MWECAU Campus Extension",
+    title: "ICT Club\n<em>Week</em>",
+    subtitle: "2026",
+    tagline: "Innovating Through Practical ICT Skills — Six Days of Impact",
+    dates: [
+      { label: "Opens", value: "Mon 1st June" },
+      { label: "Closes", value: "Sat 6th June" },
+      { label: "Hours", value: "09:00 – 16:00" }
+    ]
+  },
+  {
+    type: "stat",
+    duration: 7000,
+    label: "Six Days of Impact",
+    number: "6",
+    suffix: " days",
+    sub: "A full week of free ICT services, networking help, design showcases, and cybersecurity awareness for every student at MWECAU.",
+    stats: [
+      { n: "4", l: "Activity Tracks" },
+      { n: "175+", l: "Students Reached" },
+      { n: "∞", l: "Free Services" }
+    ]
+  },
+  {
+    type: "activity",
+    duration: 9000,
+    tag: "Track 01 — Free Computer Services",
+    title: "Computer\nRepair &\nMaintenance",
+    desc: "Walk in with any PC issue. Our students troubleshoot, install, repair, and optimize — no charges, no questions.",
+    image: "",
+    image_emoji: "🖥️",
+    items: ["Troubleshooting", "Windows Installation", "Software Installation", "Virus Removal", "Speed Optimization"]
+  },
+  {
+    type: "activity",
+    duration: 9000,
+    tag: "Track 02 — Internet & Networking",
+    title: "Wi-Fi &\nNetworking\nHelp",
+    desc: "Struggling with connectivity or wanting to understand how the internet really works? We've got practical help on-site.",
+    image: "",
+    image_emoji: "📡",
+    items: ["Wi-Fi Setup", "Internet Usage Tips", "VPN Installation", "Email & Cloud Support", "Network Basics"]
+  },
+  {
+    type: "activity",
+    duration: 9000,
+    tag: "Track 03 — Graphics Design",
+    title: "Design &\nBranding\nShowcase",
+    desc: "Our design department demonstrates real creative work — posters, logos, social media branding. Drop in to learn or commission a design.",
+    image: "",
+    image_emoji: "🎨",
+    items: ["Poster Design", "Logo Creation", "Social Media Branding", "Brand Identity", "Typography Basics"]
+  },
+  {
+    type: "activity",
+    duration: 9000,
+    tag: "Track 04 — Cybersecurity",
+    title: "Stay Safe\nOnline",
+    desc: "In a world of scams and data breaches, knowledge is your shield. Our cybersecurity team runs hands-on awareness sessions for everyone.",
+    image: "",
+    image_emoji: "🔐",
+    items: ["Scam Awareness", "Password Protection", "Data Privacy Tips", "Social Media Safety", "Phone Security Setup"]
+  },
+  {
+    type: "quote",
+    duration: 8000,
+    quote: "Technology is not just a career — it's a responsibility to build a better Tanzania.",
+    author: "MWECAU ICT Club Member"
+  },
+  {
+    type: "schedule",
+    duration: 10000,
+    eyebrow: "Full Week Schedule",
+    title: "6 Days,\nEvery Day",
+    items: [
+      { day: "Monday 1st", name: "Opening Day", time: "09:00–16:00" },
+      { day: "Tuesday 2nd", name: "Networking Help", time: "09:00–16:00" },
+      { day: "Wednesday 3rd", name: "Cybersecurity Day", time: "09:00–16:00" },
+      { day: "Thursday 4th", name: "Design Showcase", time: "09:00–16:00" },
+      { day: "Friday 5th", name: "AI & Innovation", time: "09:00–16:00" },
+      { day: "Saturday 6th", name: "Closing Ceremony", time: "09:00–16:00" }
+    ]
+  },
+  {
+    type: "announce",
+    duration: 9000,
+    eyebrow: "Open to Everyone",
+    title: "Technology\nBeyond the\nClassroom",
+    body: "All activities are free, open to students from all courses and all levels. Organized entirely by Computer Science students.",
+    highlights: [
+      { icon: "📍", text: "University Campus Extension, Moshi" },
+      { icon: "🕘", text: "Daily 09:00 – 16:00" },
+      { icon: "👥", text: "All Courses · All Levels · Free Entry" },
+      { icon: "📲", text: "@mwecau_ictclub on Instagram" }
+    ],
+    cards: [
+      { num: "4", label: "Activity categories available all week" },
+      { num: "6", label: "Departments running sessions" },
+      { num: "CS", label: "Organized by Computer Science students" }
+    ]
+  },
+  {
+    type: "hero",
+    duration: 10000,
+    eyebrow: "Organized by MWECAU Computer Science Students",
+    title: "Build. Secure.\n<em>Design.</em> Deploy.",
+    subtitle: "",
+    tagline: "Follow us: @mwecau_ictclub  ·  github.com/mwecauictclub  ·  m-ict.netlify.app",
+    dates: [
+      { label: "Website", value: "m-ict.netlify.app" },
+      { label: "Instagram", value: "@mwecau_ictclub" }
+    ]
+  }
+];
+
+/* ═══════════════════════════════════════
+   RENDERER
+═══════════════════════════════════════ */
+function buildSlide(data, idx) {
+  const el = document.createElement('div');
+  el.className = 'slide';
+  el.dataset.idx = idx;
+
+  if (data.type === 'hero') {
+    const titleLines = data.title.split('\n').join('<br>');
+    el.classList.add('slide-hero');
+    el.innerHTML = `
+      <div class="eyebrow anim-up">${data.eyebrow}</div>
+      <h1 class="anim-up">${titleLines} <span style="color:var(--blue-bright);font-size:0.55em;vertical-align:middle;">${data.subtitle}</span></h1>
+      <p class="tagline anim-up">${data.tagline}</p>
+      <div class="dates-badge anim-up">
+        ${data.dates.map(d => `<div class="date-pill"><span>${d.label}</span><span>${d.value}</span></div>`).join('')}
+      </div>
+    `;
+  } else if (data.type === 'activity') {
+    el.classList.add('slide-activity');
+    const titleLines = data.title.split('\n').map(l => `<span>${l}</span>`).join('<br>');
+    el.innerHTML = `
+      <div class="act-content">
+        <div class="act-tag anim-left">${data.tag}</div>
+        <h2 class="anim-left">${titleLines}</h2>
+        <p class="act-desc anim-left">${data.desc}</p>
+        <div class="act-items anim-left">
+          ${data.items.map(i => `<div class="act-item">${i}</div>`).join('')}
+        </div>
+      </div>
+      <div class="act-visual anim-right">
+        ${data.image
+          ? `<img src="${data.image}" class="act-img" alt="${data.tag}" onerror="this.style.display='none'">`
+          : `<div class="act-img-placeholder">${data.image_emoji || '📡'}</div>`
+        }
+      </div>
+    `;
+  } else if (data.type === 'stat') {
+    el.classList.add('slide-stat');
+    el.innerHTML = `
+      <div class="stat-label anim-up">${data.label}</div>
+      <div class="stat-number anim-up"><em>${data.number}</em>${data.suffix || ''}</div>
+      <p class="stat-sub anim-up">${data.sub}</p>
+      <div class="stat-grid anim-up">
+        ${data.stats.map(s => `<div class="stat-card"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join('')}
+      </div>
+    `;
+  } else if (data.type === 'quote') {
+    el.classList.add('slide-quote');
+    el.innerHTML = `
+      <div class="quote-mark anim-up">"</div>
+      <div class="quote-text anim-up">${data.quote}</div>
+      <div class="quote-author anim-up">${data.author}</div>
+    `;
+  } else if (data.type === 'schedule') {
+    el.classList.add('slide-schedule');
+    const titleLines = data.title.split('\n').map(l => `<span>${l}</span>`).join('<br>');
+    el.innerHTML = `
+      <div class="sched-head anim-up">
+        <div class="eyebrow">${data.eyebrow}</div>
+        <h2>${titleLines}</h2>
+      </div>
+      <div class="sched-grid anim-up">
+        ${data.items.map(s => `
+          <div class="sched-item">
+            <div class="day">${s.day}</div>
+            <div class="activity-name">${s.name}</div>
+            <div class="time-badge">⏰ ${s.time}</div>
+          </div>`).join('')}
+      </div>
+    `;
+  } else if (data.type === 'announce') {
+    el.classList.add('slide-announce');
+    const titleLines = data.title.split('\n').map(l => `<span>${l}</span>`).join('<br>');
+    el.innerHTML = `
+      <div class="ann-left">
+        <div class="ann-eyebrow anim-left">${data.eyebrow}</div>
+        <h2 class="anim-left">${titleLines}</h2>
+        <p class="anim-left">${data.body}</p>
+        <div class="ann-highlights anim-left">
+          ${data.highlights.map(h => `
+            <div class="ann-highlight">
+              <div class="icon">${h.icon}</div>
+              <span>${h.text}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="ann-right anim-right">
+        ${data.cards.map(c => `
+          <div class="ann-card">
+            <div class="num">${c.num}</div>
+            <div>${c.label}</div>
+          </div>`).join('')}
+      </div>
+    `;
+  }
+
+  return el;
+}
+
+/* ═══════════════════════════════════════
+   SLIDESHOW ENGINE
+═══════════════════════════════════════ */
+const stage = document.getElementById('stage');
+const progressBar = document.getElementById('progress-bar');
+const slideCounter = document.getElementById('slide-counter');
+const dotsContainer = document.getElementById('slide-dots');
+
+let currentIdx = 0;
+let timer = null;
+let progTimer = null;
+let progStart = null;
+let currentDuration = 8000;
+
+// Build all slides
+const slideEls = SLIDES.map((data, i) => {
+  const el = buildSlide(data, i);
+  stage.appendChild(el);
+  return el;
+});
+
+// Build dots
+SLIDES.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.onclick = () => goTo(i);
+  dotsContainer.appendChild(d);
+});
+
+function updateDots(idx) {
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+}
+
+function goTo(idx) {
+  if (timer) clearTimeout(timer);
+  if (progTimer) cancelAnimationFrame(progTimer);
+
+  slideEls[currentIdx].classList.remove('active');
+  currentIdx = (idx + SLIDES.length) % SLIDES.length;
+  slideEls[currentIdx].classList.add('active');
+
+  const n = SLIDES.length;
+  slideCounter.textContent = String(currentIdx + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
+  updateDots(currentIdx);
+
+  currentDuration = SLIDES[currentIdx].duration || 8000;
+  startProgress(currentDuration);
+  timer = setTimeout(() => goTo(currentIdx + 1), currentDuration);
+}
+
+function startProgress(duration) {
+  progressBar.style.transition = 'none';
+  progressBar.style.width = '0%';
+  progStart = performance.now();
+
+  function tick(now) {
+    const elapsed = now - progStart;
+    const pct = Math.min((elapsed / duration) * 100, 100);
+    progressBar.style.width = pct + '%';
+    if (pct < 100) progTimer = requestAnimationFrame(tick);
+  }
+  progTimer = requestAnimationFrame(tick);
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') goTo(currentIdx + 1);
+  if (e.key === 'ArrowLeft') goTo(currentIdx - 1);
+});
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    String(now.getHours()).padStart(2,'0') + ':' +
+    String(now.getMinutes()).padStart(2,'0') + ':' +
+    String(now.getSeconds()).padStart(2,'0');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Start
+goTo(0);
+</script>
+</body>
+</html>
